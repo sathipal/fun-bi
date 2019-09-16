@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 PACKAGE_URL = 'git+https://github.com/sathipal/fun-bi@'
 
 
-class BIAssetHTTPPreload(BasePreload):
+class BIOccupancyAssetHTTPPreload(BasePreload):
     '''
     Do a HTTP request as a preload activity. Load results of the get into the Entity Type time series table.
     HTTP request is experimental
