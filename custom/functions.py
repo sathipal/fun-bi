@@ -93,7 +93,7 @@ class BIAssetHTTPPreload(BasePreload):
         #response_data = json.loads(req.data.decode('utf-8'))
         return self.token
 
-    def getEnergy (self, buildings = None):
+    def getOccupancyRate (self, buildings = None):
         '''
         # input list of buildings and Returns list of energy by building.
 
@@ -128,10 +128,6 @@ class BIAssetHTTPPreload(BasePreload):
         # Initialize building energy metrics to retrieve
         '''
         metrics_value = []
-        metrics_unit  = []
-        metrics_compare_percent  = []
-        metrics_trend = []
-        metrics_trend_status = []
 
         logging.debug("Getting Energy")
         header = {}
@@ -143,15 +139,15 @@ class BIAssetHTTPPreload(BasePreload):
         #uri = "https://iotbi272-agg.mybluemix.net/api/v1/dtl/floors?buildingName=" + building['id'] + displayName="true"
         #uri = "https://iotbi272-agg.mybluemix.net/api/v1/dtl/FootFallByFloor?buildingName=" + building['id']
         #energy_data_options = ['usage','prediction','comparison','outage']
-        energy_data_options = ['usage']
+        energy_data_options = ['OccupancyRateBuilding']
 
 
         for bldg in buildings:
-            logging.debug("getEnergy for buiding %s "  %bldg)
+            logging.debug("getOccupancyRate for buiding %s "  %bldg)
 
             for etype in energy_data_options:
-                logging.debug("getEnergy type %s " %etype  )
-                uri = "https://" + self.tenant + "-agg.mybluemix.net/api/v1/building/energy/" + etype
+                logging.debug("getOccupancyRate type %s " %etype  )
+                uri = "https://" + self.tenant + "-agg.mybluemix.net/api/v1/dtl/OccupancyRateBuilding"
                 logging.debug("uri %s" %uri)
                 req = self.db.http.request('GET',
                                  uri,
@@ -163,20 +159,12 @@ class BIAssetHTTPPreload(BasePreload):
                     logging.debug("energy_metrics req.data  %s" %req.data )
                     # '{"value":16.3,"unit":"MWh","compare_percent":7.34,"trend":"DOWN","trend_status":"GREEN"}'
                     energy_metrics_json = json.loads(req.data.decode('utf-8'))
-                    metrics_value.append(energy_metrics_json['value'])
-                    metrics_unit.append(energy_metrics_json['unit'])
-                    metrics_compare_percent.append(energy_metrics_json['compare_percent'])
-                    metrics_trend.append(energy_metrics_json['trend'])
-                    metrics_trend_status.append(energy_metrics_json['trend_status'])
+                    metrics_value.append(energy_metrics_json['Avg. peak occupancy (%) last 30 days'])
                 else:
                     logging.debug('energy_metrics no data found' )
                     metrics_value.append(0.0)
-                    metrics_unit.append("NA")
-                    metrics_compare_percent.append(0.0)
-                    metrics_trend.append("NA")
-                    metrics_trend_status.append("NA")
 
-        return metrics_value, metrics_unit, metrics_compare_percent, metrics_trend, metrics_trend_status
+        return metrics_value
 
     def parseBuildings (self, data = None ):
 
@@ -194,7 +182,7 @@ class BIAssetHTTPPreload(BasePreload):
           logging.debug("Getting list of buildings")
           header = {}
           #uri = "https://iotbi272-kitt.mybluemix.net/api/v1/graph/iotbi272/instance/iotbi272"
-          uri = "https://" + self.tenant + "-kitt.mybluemix.net/api/v1/graph/iotbi272/instance/"+ self.tenant
+          uri = "https://" + self.tenant + "-kitt.mybluemix.net/api/v1/graph/"+self.tenant+"/instance/"+ self.tenant
           auth_str = 'Bearer '+ self.token
           logging.debug(str(auth_str))
           #header = { 'Authorization':  }
@@ -286,19 +274,11 @@ class BIAssetHTTPPreload(BasePreload):
         '''
         # Create Numpy array using Building Insights energy usage data
         '''
-        metrics_value, metrics_unit, metrics_compare_percent, metrics_trend, metrics_trend_status = self.getEnergy ( buildings = buildings)
+        metrics_value, metrics_unit, metrics_compare_percent, metrics_trend, metrics_trend_status = self.getOccupancyRate ( buildings = buildings)
 
         logging.debug("length metrics_value %d" %len(metrics_value) )
-        logging.debug("length metrics_unit %d" %len(metrics_unit) )
-        logging.debug("length metrics_compare_percent %d" %len(metrics_compare_percent) )
-        logging.debug("length metrics_trend %d" %len(metrics_trend) )
-        logging.debug("length metrics_trend_status %d" %len(metrics_trend_status) )
         logging.debug("length buildings %d" %len(buildings) )
-        response_data['energy_value'] = np.array( metrics_value )
-        response_data['energy_unit'] = np.array( metrics_unit )
-        response_data['energy_compare_percent'] = np.array( metrics_compare_percent )
-        response_data['energy_trend'] = np.array( metrics_trend )
-        response_data['energy_trend_status'] = np.array( metrics_trend_status )
+        response_data['avg_occupancy_rate'] = np.array( metrics_value )
         response_data['building'] = np.array(buildings)
         response_data['devicetype'] = np.array(buildings)
         response_data['logicalinterface_id'] = np.array(buildings)
@@ -394,7 +374,7 @@ class BIAssetHTTPPreload(BasePreload):
                               ))
         inputs.append(ui.UISingle(name='url',
                                   datatype=str,
-                                  description='request url use internal_test',
+                                  description='request tenant use internal_test',
                                   tags=['TEXT'],
                                   required=True
                                   ))
