@@ -278,7 +278,7 @@ class BI2OccupancyAssetHTTPPreload(BasePreload):
 
         logging.debug("length metrics_value %d" %len(metrics_value) )
         logging.debug("length buildings %d" %len(buildings) )
-        response_data['avg_occupancy_rate'] = np.array( metrics_value )
+        response_data['energy_value'] = np.array( metrics_value )
         response_data['building'] = np.array(buildings)
         response_data['devicetype'] = np.array(buildings)
         response_data['logicalinterface_id'] = np.array(buildings)
