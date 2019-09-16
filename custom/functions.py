@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 PACKAGE_URL = 'git+https://github.com/sathipal/fun-bi@'
 
 
-class BIOccupancyAssetHTTPPreload(BasePreload):
+class BI2OccupancyAssetHTTPPreload(BasePreload):
     '''
     Do a HTTP request as a preload activity. Load results of the get into the Entity Type time series table.
     HTTP request is experimental
@@ -274,7 +274,7 @@ class BIOccupancyAssetHTTPPreload(BasePreload):
         '''
         # Create Numpy array using Building Insights energy usage data
         '''
-        metrics_value, metrics_unit, metrics_compare_percent, metrics_trend, metrics_trend_status = self.getOccupancyRate ( buildings = buildings)
+        metrics_value = self.getOccupancyRate ( buildings = buildings)
 
         logging.debug("length metrics_value %d" %len(metrics_value) )
         logging.debug("length buildings %d" %len(buildings) )
